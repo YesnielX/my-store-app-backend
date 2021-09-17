@@ -1,5 +1,4 @@
 {
-  // Configuration for JavaScript files
   "extends": ["airbnb-base", "plugin:prettier/recommended"],
   "rules": {
     "prettier/prettier": [
@@ -10,7 +9,6 @@
     ]
   },
   "overrides": [
-    // Configuration for TypeScript files
     {
       "files": ["**/*.ts", "**/*.tsx"],
       "plugins": ["@typescript-eslint", "unused-imports"],

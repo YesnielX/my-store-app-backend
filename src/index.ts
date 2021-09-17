@@ -1,16 +1,20 @@
 import express, { json } from 'express';
 import helmet from 'helmet';
-import router from './routes';
 import morgan from 'morgan';
+import cors from 'cors';
+import database from './database/database';
+import { PORT } from './config/config';
+import router from './routes';
 
 const app = express();
+
 app.use(json());
 app.use(helmet());
-require('dotenv').config();
+app.use(cors());
 app.use(morgan('dev'));
-app.use("/api", router);
+database();
+app.use('/api', router);
 
-
-app.listen(process.env.PORT || 3000, () => {
-  console.log(`Server started on port ${process.env.PORT || 3000}`);
+app.listen(PORT || 3000, () => {
+    console.log(`Server started on port ${process.env.PORT || 3000}`);
 });
