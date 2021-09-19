@@ -1,8 +1,12 @@
-import { JWT_EXPIRES, JWT_SECRET } from './../../config/config';
+/* eslint-disable func-names */
+/* eslint-disable no-underscore-dangle */
+import crypto from 'crypto';
+
+import jwt from 'jsonwebtoken';
 import { Document, model, Schema } from 'mongoose';
 import uniqueValidator from 'mongoose-unique-validator';
-import crypto from 'crypto';
-import jwt from 'jsonwebtoken';
+
+import { JWT_EXPIRES, JWT_SECRET } from '../../config/config';
 
 interface IUser {
     username: string;
@@ -16,8 +20,6 @@ interface IUserToAuthJSON {
     username: string;
     email: string;
     image: string;
-    hash: string;
-    salt: string;
 }
 
 interface IUserInterface extends Document, IUser {
@@ -99,4 +101,4 @@ UserSchema.methods.toAuthJSON = function () {
     };
 };
 
-export const User = model<IUserInterface>('User', UserSchema);
+export default model<IUserInterface>('User', UserSchema);

@@ -1,9 +1,10 @@
+import cors from 'cors';
 import express, { json } from 'express';
 import helmet from 'helmet';
 import morgan from 'morgan';
-import cors from 'cors';
-import database from './database/database';
+
 import { PORT } from './config/config';
+import database from './database/database';
 import router from './routes';
 
 const app = express();
@@ -16,5 +17,6 @@ database();
 app.use('/api', router);
 
 app.listen(PORT || 3000, () => {
+    // eslint-disable-next-line no-console
     console.log(`Server started on port ${process.env.PORT || 3000}`);
 });
