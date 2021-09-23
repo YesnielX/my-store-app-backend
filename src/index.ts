@@ -6,6 +6,7 @@ import morgan from 'morgan';
 import { PORT } from './config/config';
 import database from './database/database';
 import router from './routes';
+import { initialSetup } from './utils/initialSetup';
 
 const app = express();
 
@@ -14,6 +15,7 @@ app.use(helmet());
 app.use(cors());
 app.use(morgan('dev'));
 database();
+initialSetup();
 app.use('/api', router);
 
 app.listen(PORT || 3000, () => {

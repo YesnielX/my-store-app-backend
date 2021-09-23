@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import validator from 'validator';
 
+import Role from '../database/models/role.model';
 import User from '../database/models/user.model';
 
 const userController: any = {};
@@ -49,11 +50,13 @@ userController.login = async (
                 error: 'User not found',
             });
         }
+
         if (!user.validatePassword(password)) {
             return res.status(401).json({
                 error: 'Password is invalid',
             });
         }
+
         return res.status(200).json({
             data: user.toAuthJSON(),
         });
@@ -80,7 +83,6 @@ userController.register = async (
             });
         }
 
-        // register regexp verify
         const regexp = /^[a-zA-Z0-9]+$/;
         if (!regexp.test(username)) {
             return res.json({
@@ -91,6 +93,12 @@ userController.register = async (
         if (!validator.isEmail(email)) {
             return res.json({
                 error: 'Email must be valid',
+            });
+        }
+
+        if (password.length < 8) {
+            return res.json({
+                error: 'Password must be at least 8 characters',
             });
         }
 
@@ -113,6 +121,97 @@ userController.register = async (
                 error: 'Username or Email already exists.',
             });
         }
+        return res.status(500).json({
+            error: 'Internal Error',
+        });
+    }
+};
+
+userController.getRoles = async (
+    req: Request,
+    res: Response
+): Promise<Response> => {
+    try {
+        const { userId } = req.body;
+
+        if (!userId) {
+            return res.status(401).json({
+                error: 'Missing fields',
+            });
+        }
+
+        if (!validator.isMongoId(userId)) {
+            return res.json({
+                error: 'Invalid fields type',
+            });
+        }
+
+        const user = await User.findById(userId);
+
+        if (!user) {
+            return res.status(404).json({
+                error: 'User not found',
+            });
+        }
+
+        return res.status(200).json({
+            message: 'User roles',
+            data: user.roles,
+        });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({
+            error: 'Internal Error',
+        });
+    }
+};
+
+userController.updateRoles = async (
+    req: Request,
+    res: Response
+): Promise<Response> => {
+    try {
+        const { userId, roles } = req.body;
+
+        if (!userId || !roles) {
+            return res.status(401).json({
+                error: 'Missing fields',
+            });
+        }
+
+        if (!validator.isMongoId(userId) || !Array.isArray(roles)) {
+            return res.json({
+                error: 'Invalid fields type',
+            });
+        }
+
+        const user = await User.findById(userId).select('-hash -salt');
+
+        if (!user) {
+            return res.status(404).json({
+                error: 'User not found',
+            });
+        }
+
+        // eslint-disable-next-line consistent-return
+        roles.map(async (role) => {
+            if ((await Role.findById(role)) === null) {
+                return res.status(404).json({
+                    error: `Role not found ${role}`,
+                });
+            }
+        });
+
+        user.roles = roles;
+
+        await user.save();
+
+        return res.status(200).json({
+            message: 'User Roles Updated',
+            data: user,
+        });
+    } catch (error) {
+        console.log(error);
         return res.status(500).json({
             error: 'Internal Error',
         });

@@ -19,6 +19,20 @@ const storeSchema = new Schema(
                 default: [],
             },
         ],
+        managers: [
+            {
+                type: Schema.Types.ObjectId,
+                ref: 'User',
+                default: [],
+            },
+        ],
+        employees: [
+            {
+                type: Schema.Types.ObjectId,
+                ref: 'User',
+                default: [],
+            },
+        ],
         author: {
             type: Schema.Types.ObjectId,
             ref: 'User',
@@ -34,8 +48,9 @@ export interface IStore extends Document {
     name: string;
     imagePath: string;
     products: string[];
-    createdAt: Date;
-    updatedAt: Date;
+    managers: string[];
+    employees: string[];
+    author: string;
 }
 
 storeSchema.plugin(mongoose_unique_validator, {

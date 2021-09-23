@@ -22,18 +22,22 @@ const productSchema = new Schema(
         categories: [
             {
                 type: String,
-                required: true,
+                default: [],
             },
         ],
         sizes: [
             {
                 type: String,
-                required: true,
+                default: [],
             },
         ],
-        portion: {
+        stock: {
             type: Number,
             required: true,
+        },
+        solds: {
+            type: Number,
+            default: 0,
         },
         imagePath: {
             type: String,
@@ -55,7 +59,8 @@ interface IProduct extends Document {
     purchasePrice: number;
     categories: string[];
     sizes: string[];
-    portion: number;
+    stock: number;
+    solds: number;
     imagePath: string;
     author: string;
 }

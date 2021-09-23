@@ -10,7 +10,7 @@
   },
   "overrides": [
     {
-      "files": ["**/*.ts", "**/*.tsx"],
+      "files": ["**/*.ts"],
       "plugins": ["@typescript-eslint", "unused-imports"],
       "extends": ["airbnb-typescript/base", "plugin:prettier/recommended"],
       "parserOptions": {
@@ -20,7 +20,8 @@
         "prettier/prettier": [
           "error",
           {
-            "singleQuote": true
+            "singleQuote": true,
+            "tailingComma": "es5"
           }
         ],
         "import/order": [
