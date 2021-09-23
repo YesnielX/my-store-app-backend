@@ -6,7 +6,6 @@ import User from '../database/models/user.model';
 
 const adminController: any = {};
 
-// get all admins
 adminController.getAdmins = async (
     _req: Request,
     res: Response

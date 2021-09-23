@@ -66,7 +66,14 @@ router
     .delete(tokenVerify, store.deleteProduct);
 
 // sold product endpoint -- no errors
-router.route('/stores/product').post(tokenVerify, store.soldProduct);
+router.route('/store/product').post(tokenVerify, store.soldProduct);
+
+// report product endpoints
+router
+    .route('/store/reports')
+    .get(tokenVerify, store.getReports)
+    .post(tokenVerify, store.createReport)
+    .delete(tokenVerify, store.deleteReport);
 
 // images endpoints
 router.route('/images').post(images.upload);

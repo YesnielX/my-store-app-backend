@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import validator from 'validator';
 
 import Product from '../database/models/product.model';
+import Report from '../database/models/productReport.model';
 import Store, { IStore } from '../database/models/store.model';
 import User from '../database/models/user.model';
 
@@ -217,10 +218,12 @@ storeController.deleteStore = async (
             await Product.findByIdAndDelete(product);
         });
 
+        await Report.deleteMany({ storeId });
+
         await store.remove();
 
         return res.json({
-            message: 'Store and products deleted',
+            message: 'Store, products and reports deleted',
         });
     } catch (error: any) {
         console.log(error.message);
@@ -1013,6 +1016,10 @@ storeController.deleteProduct = async (
             });
         }
 
+        await Store.findByIdAndUpdate(storeExist.id, {
+            $pull: { products: productId },
+        });
+
         if (
             productExist.author.toString() !== (<any>req).user.id &&
             !(storeExist as IStore).managers.includes((<any>req).user.id)
@@ -1024,9 +1031,196 @@ storeController.deleteProduct = async (
 
         await Product.findByIdAndDelete(productId);
 
+        await Report.deleteMany({ productId });
+
         return res.json({
-            message: 'Product Deleted',
+            message: 'Product and reports deleted',
             data: productExist,
+        });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({
+            error: 'Internal Error',
+        });
+    }
+};
+
+storeController.getReports = async (
+    req: Request,
+    res: Response
+): Promise<Response> => {
+    try {
+        const { storeId } = req.body;
+
+        if (!storeId) {
+            return res.status(400).json({
+                error: 'Missing fields',
+            });
+        }
+
+        if (!validator.isMongoId(storeId)) {
+            return res.status(400).json({
+                error: 'Invalid fields type',
+            });
+        }
+
+        const storeExist = await Store.findById(storeId);
+
+        if (!storeExist) {
+            return res.status(404).json({
+                error: 'Store not found',
+            });
+        }
+
+        if (
+            storeExist.author.toString() !== (<any>req).user.id &&
+            !(storeExist as IStore).managers.includes((<any>req).user.id)
+        ) {
+            return res.status(403).json({
+                error: 'Unauthorized',
+            });
+        }
+
+        const reports = await Report.find({
+            storeId,
+        });
+
+        return res.json({
+            message: 'Reports',
+            data: reports,
+        });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({
+            error: 'Internal Error',
+        });
+    }
+};
+
+storeController.createReport = async (
+    req: Request,
+    res: Response
+): Promise<Response> => {
+    try {
+        console.log(req.body);
+
+        const { storeId, productId, title, description, imagePath } = req.body;
+
+        if (!storeId || !productId || !title || !description) {
+            return res.status(400).json({
+                error: 'Missing fields',
+            });
+        }
+
+        if (
+            typeof title !== 'string' ||
+            !validator.isMongoId(storeId) ||
+            !validator.isMongoId(productId) ||
+            typeof description !== 'string' ||
+            (imagePath && imagePath.length > 5 && !validator.isURL(imagePath))
+        ) {
+            return res.status(400).json({
+                error: 'Invalid fields',
+            });
+        }
+
+        const storeExist = await Store.findById(storeId);
+
+        if (!storeExist) {
+            return res.status(404).json({
+                error: 'Store not found',
+            });
+        }
+
+        if (
+            storeExist.author.toString() !== (<any>req).user.id &&
+            !(storeExist as IStore).managers.includes((<any>req).user.id) &&
+            !(storeExist as IStore).employees.includes((<any>req).user.id)
+        ) {
+            return res.status(403).json({
+                error: 'Unauthorized',
+            });
+        }
+
+        const newReport = new Report({
+            storeId,
+            productId,
+            title,
+            description,
+            imagePath,
+            author: (<any>req).user.id,
+        });
+
+        await newReport.save();
+
+        return res.status(201).json({
+            message: 'Report Created',
+            data: newReport,
+        });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({
+            error: 'Internal Error',
+        });
+    }
+};
+
+storeController.deleteReport = async (
+    req: Request,
+    res: Response
+): Promise<Response> => {
+    try {
+        console.log(req.body);
+
+        const { reportId } = req.body;
+
+        if (!reportId) {
+            return res.status(400).json({
+                error: 'Missing fields',
+            });
+        }
+
+        if (!validator.isMongoId(reportId)) {
+            return res.status(400).json({
+                error: 'Invalid fields type',
+            });
+        }
+
+        const reportExist = await Report.findById(reportId);
+
+        if (!reportExist) {
+            return res.status(404).json({
+                error: 'Report not found',
+            });
+        }
+
+        const storeExist = await Store.findById(reportExist.storeId);
+
+        if (!storeExist) {
+            return res.status(404).json({
+                error: 'Store not found',
+            });
+        }
+
+        const productExist = await Product.findById(reportExist.productId);
+
+        if (!productExist) {
+            return res.status(404).json({
+                error: 'Product not found',
+            });
+        }
+
+        if (reportExist.author.toString() !== (<any>req).user.id) {
+            return res.status(403).json({
+                error: 'Unauthorized',
+            });
+        }
+
+        await Report.findByIdAndDelete(reportId);
+
+        return res.json({
+            message: 'Report Deleted',
+            data: reportExist,
         });
     } catch (error) {
         console.log(error);

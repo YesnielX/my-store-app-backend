@@ -1,5 +1,3 @@
-// Role Model with mongoose
-
 import { Document, model, Schema } from 'mongoose';
 
 const roleSchema = new Schema(
@@ -37,7 +35,6 @@ const roleSchema = new Schema(
     }
 );
 
-// interface
 export interface IRole extends Document {
     name: string;
     description: string;
@@ -49,5 +46,4 @@ export interface IRole extends Document {
     };
 }
 
-// model
 export default model<IRole>('Role', roleSchema);
