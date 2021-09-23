@@ -14,6 +14,26 @@ storeController.getStores = async (
 ): Promise<Response> => {
     try {
         const { user } = <any>req;
+
+        const checkAdmin = await User.findById(user.id);
+
+        if (checkAdmin?.isAdmin || checkAdmin?.isPrincipalAdmin) {
+            const stores = await Store.find({})
+                .populate('author managers employees products', '-salt -hash')
+                .populate({
+                    path: 'products',
+                    populate: {
+                        path: 'author',
+                        select: '-salt -hash',
+                    },
+                });
+
+            return res.json({
+                message: 'Stores, you are a admin',
+                data: stores,
+            });
+        }
+
         const stores = await Store.find({ author: user.id }).populate(
             'author',
             '-salt -hash'
@@ -152,10 +172,12 @@ storeController.updateStore = async (
 
         if (
             (store as IStore).author.toString() !== (<any>req).user.id &&
-            !store.managers.includes((<any>req).user.id)
+            !store.managers.includes((<any>req).user.id) &&
+            !(await User.findById((<any>req).user.id))?.isPrincipalAdmin &&
+            !(await User.findById((<any>req).user.id))?.isAdmin
         ) {
             return res.status(403).json({
-                error: 'Unauthorized',
+                error: 'Unauthorized, ony store owner, managers or admin',
             });
         }
 
@@ -207,7 +229,8 @@ storeController.deleteStore = async (
 
         if (
             (store as IStore).author.toString() !== (<any>req).user.id &&
-            (await User.findById((<any>req).user.id))?.isAdmin
+            !(await User.findById((<any>req).user.id))?.isPrincipalAdmin &&
+            !(await User.findById((<any>req).user.id))?.isAdmin
         ) {
             return res.status(403).json({
                 error: 'Unauthorized, only owner store or admin',

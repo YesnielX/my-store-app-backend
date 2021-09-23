@@ -53,7 +53,7 @@ adminController.adminLogin = async (
             });
         }
 
-        if (!user.isAdmin) {
+        if (!user.isAdmin && !user.isPrincipalAdmin) {
             return res.status(401).json({
                 error: 'You are not an administrator',
             });
@@ -76,83 +76,18 @@ adminController.adminLogin = async (
     }
 };
 
-adminController.adminRegister = async (
-    req: Request,
-    res: Response
-): Promise<Response> => {
-    try {
-        console.log(req.body);
-
-        const { username, email, password } = req.body;
-
-        if (!username || !email || !password) {
-            return res.status(401).json({
-                error: 'Missing fields',
-            });
-        }
-
-        if ((await User.findOne({ isAdmin: true })) !== null) {
-            res.status(403).json({
-                message: 'Forbidden, There are already administrators',
-            });
-        }
-
-        const regexp = /^[a-zA-Z0-9]+$/;
-        if (!regexp.test(username)) {
-            return res.json({
-                error: 'Username must be alphanumeric',
-            });
-        }
-
-        if (!validator.isEmail(email)) {
-            return res.json({
-                error: 'Email must be valid',
-            });
-        }
-        if ((await User.findOne({ isAdmin: true })) !== null) {
-            return res.json({
-                error: 'Only one administrator is allowed to register, ask another one to add as administrator',
-            });
-        }
-
-        if (password.length < 8) {
-            return res.json({
-                error: 'Password must be at least 8 characters',
-            });
-        }
-
-        const newUser = new User({
-            username,
-            email,
-            isAdmin: true,
-        });
-        newUser.setPassword(password);
-
-        await newUser.save();
-
-        return res.status(201).json({
-            message: 'Admin Register Completed.',
-            data: newUser.toAuthJSON(),
-        });
-    } catch (error: any) {
-        console.log(error.message);
-        if (error.message.includes('is already taken')) {
-            return res.status(403).json({
-                error: 'Username or Email already exists.',
-            });
-        }
-        return res.status(500).json({
-            error: 'Internal Error',
-        });
-    }
-};
-
 adminController.addAdmin = async (
     req: Request,
     res: Response
 ): Promise<Response> => {
     try {
         const { userOrEmail } = req.body;
+
+        if (!(await User.findById((<any>req).user.id))?.isPrincipalAdmin) {
+            return res.status(401).json({
+                error: 'You are not an principal administrator',
+            });
+        }
 
         if (!userOrEmail) {
             return res.status(401).json({
@@ -206,6 +141,12 @@ adminController.removeAdmin = async (
 ): Promise<Response> => {
     try {
         const { userOrEmail } = req.body;
+
+        if (!(await User.findById((<any>req).user.id))?.isPrincipalAdmin) {
+            return res.status(401).json({
+                error: 'You are not an principal administrator',
+            });
+        }
 
         if (!userOrEmail) {
             return res.status(401).json({

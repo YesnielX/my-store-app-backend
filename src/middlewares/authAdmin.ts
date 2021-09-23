@@ -16,7 +16,10 @@ export default async (req: Request, res: Response, next: NextFunction) => {
         const decoded = jwt.verify(token, JWT_SECRET);
         (<any>req).user = decoded;
 
-        if (!(await User.findOne({ _id: (<any>req).user.id }))?.isAdmin) {
+        if (
+            !(await User.findOne({ _id: (<any>req).user.id }))?.isAdmin &&
+            !(await User.findOne({ _id: (<any>req).user.id }))?.isPrincipalAdmin
+        ) {
             return res.status(403).json({
                 error: 'You are not allowed to do this action, admin Only',
             });

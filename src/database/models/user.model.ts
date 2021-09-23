@@ -14,6 +14,7 @@ export interface IUser {
     email: string;
     roles: IRole[];
     image: string;
+    isPrincipalAdmin: boolean;
     isAdmin: boolean;
     hash: string;
     salt: string;
@@ -24,6 +25,7 @@ export interface IUserToAuthJSON {
     email: string;
     roles: IRole[];
     image: string;
+    isPrincipalAdmin: boolean;
     isAdmin: boolean;
     token: string;
 }
@@ -51,6 +53,10 @@ const UserSchema = new Schema<IUserInterface>(
         },
         roles: [{ type: Schema.Types.ObjectId, ref: 'Role' }],
         image: String,
+        isPrincipalAdmin: {
+            type: Boolean,
+            default: false,
+        },
         isAdmin: {
             type: Boolean,
             default: false,
@@ -108,6 +114,7 @@ UserSchema.methods.toAuthJSON = function () {
         username: this.username,
         email: this.email,
         image: this.image,
+        isPrincipalAdmin: this.isPrincipalAdmin,
         isAdmin: this.isAdmin,
         token: this.generateJWT(),
     };

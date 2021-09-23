@@ -14,13 +14,15 @@ router.route('/user').get(user.login).post(user.register);
 router.get('/users', authAdmin, user.users);
 
 // user roles endpoint -- no errors
-router.route('/user/roles').get(user.getRoles).put(authAdmin, user.updateRoles);
+router
+    .route('/user/roles')
+    .get(tokenVerify, user.getRoles)
+    .put(authAdmin, user.updateRoles);
 
 // admin endpoints -- no errors
 router
     .route('/admin')
     .get(admin.adminLogin)
-    .post(admin.adminRegister)
     .put(authAdmin, admin.addAdmin)
     .delete(authAdmin, admin.removeAdmin);
 
