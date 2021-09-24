@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import validator from 'validator';
 
+import appReportModel from '../database/models/appReport.model';
 import Role from '../database/models/role.model';
 import User from '../database/models/user.model';
 
@@ -358,6 +359,110 @@ adminController.deleteRole = async (req: Request, res: Response) => {
 
         return res.status(200).json({
             message: 'Role deleted successfully',
+        });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({
+            error: 'Internal Error',
+        });
+    }
+};
+
+adminController.getAppReports = async (
+    _req: Request,
+    res: Response
+): Promise<Response> => {
+    try {
+        const reports = await appReportModel.find();
+
+        return res.status(200).json({
+            message: 'Reports retrieved successfully',
+            data: reports,
+        });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({
+            error: 'Internal Error',
+        });
+    }
+};
+
+// delete AppReport function
+adminController.deleteAppReport = async (req: Request, res: Response) => {
+    try {
+        const { reportId } = req.body;
+
+        if (!reportId) {
+            return res.status(401).json({
+                error: 'Missing fields',
+            });
+        }
+
+        if (!validator.isMongoId(reportId)) {
+            return res.status(401).json({
+                error: 'reportId must be a string',
+            });
+        }
+
+        const report = await appReportModel.findById(reportId);
+
+        if (!report) {
+            return res.status(404).json({
+                error: 'Report not found',
+            });
+        }
+
+        await appReportModel.findByIdAndDelete(reportId);
+
+        return res.status(200).json({
+            message: 'Report deleted successfully',
+            data: report,
+        });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({
+            error: 'Internal Error',
+        });
+    }
+};
+
+adminController.appReportResolved = async (req: Request, res: Response) => {
+    try {
+        const { reportId } = req.body;
+
+        if (!reportId) {
+            return res.status(401).json({
+                error: 'Missing fields',
+            });
+        }
+
+        if (!validator.isMongoId(reportId)) {
+            return res.status(401).json({
+                error: 'reportId must be a string',
+            });
+        }
+
+        const report = await appReportModel.findById(reportId);
+
+        if (!report) {
+            return res.status(404).json({
+                error: 'Report not found',
+            });
+        }
+
+        if (report.solved) {
+            return res.status(403).json({
+                error: 'Report already resolved',
+            });
+        }
+
+        report.solved = true;
+
+        await report.save();
+
+        return res.status(200).json({
+            message: 'Report resolved successfully',
+            data: report,
         });
     } catch (error) {
         console.log(error);

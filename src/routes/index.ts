@@ -26,6 +26,14 @@ router
     .put(authAdmin, admin.addAdmin)
     .delete(authAdmin, admin.removeAdmin);
 
+// admin app reports endpoints
+router
+    .route('/app/reports')
+    .get(authAdmin, admin.getAppReports)
+    .post(tokenVerify, user.createAppReport)
+    .put(authAdmin, admin.appReportResolved)
+    .delete(authAdmin, admin.deleteAppReport);
+
 // get admins endpoint -- no errors
 router.get('/admins', authAdmin, admin.getAdmins);
 

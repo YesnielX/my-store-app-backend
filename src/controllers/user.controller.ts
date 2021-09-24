@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import validator from 'validator';
 
+import AppReport from '../database/models/appReport.model';
 import Role from '../database/models/role.model';
 import User from '../database/models/user.model';
 
@@ -209,6 +210,50 @@ userController.updateRoles = async (
         return res.status(200).json({
             message: 'User Roles Updated',
             data: user,
+        });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({
+            error: 'Internal Error',
+        });
+    }
+};
+
+userController.createAppReport = async (
+    req: Request,
+    res: Response
+): Promise<Response> => {
+    try {
+        const { title, description, imagePath } = req.body;
+
+        if (!title || !description) {
+            return res.status(401).json({
+                error: 'Missing fields',
+            });
+        }
+
+        if (
+            typeof title !== 'string' ||
+            typeof description !== 'string' ||
+            (imagePath && !validator.isURL(imagePath))
+        ) {
+            return res.json({
+                error: 'Invalid fields type',
+            });
+        }
+
+        const newAppReport = new AppReport({
+            title,
+            description,
+            imagePath,
+            author: (<any>req).user.id,
+        });
+
+        await newAppReport.save();
+
+        return res.status(201).json({
+            message: 'App Report Created',
+            data: newAppReport,
         });
     } catch (error) {
         console.log(error);
