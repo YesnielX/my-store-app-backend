@@ -15,5 +15,6 @@ export const CLOUDINARY_API_SECRET =
     process.env.CLOUDINARY_API_SECRET || 'api_secret';
 
 export const PORT = process.env.PORT || 3000;
+export const APP_HOST = process.env.APP_HOST || 'http://localhost:3000';
 export const MONGODB_URI =
     String(process.env.MONGODB_URI) || 'mongodb://localhost:27017/test';

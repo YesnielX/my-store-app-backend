@@ -10,8 +10,9 @@ import {
 } from '../config/config';
 
 // eslint-disable-next-line consistent-return
-export const sendMail = async (to: string, subject: string, text: string) => {
+export const sendMail = async (to: string, subject: string, html: string) => {
     try {
+        console.log(NODEMAILER_USER, NODEMAILER_PASS);
         const transporter = nodemailer.createTransport({
             host: NODEMAILER_HOST,
             port: Number(NODEMAILER_PORT),
@@ -25,7 +26,7 @@ export const sendMail = async (to: string, subject: string, text: string) => {
             from: NODEMAILER_USER,
             to,
             subject,
-            text,
+            html,
         });
         return info;
     } catch (error) {

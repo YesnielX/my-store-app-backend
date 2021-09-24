@@ -387,7 +387,6 @@ adminController.getAppReports = async (
     }
 };
 
-// delete AppReport function
 adminController.deleteAppReport = async (req: Request, res: Response) => {
     try {
         const { reportId } = req.body;

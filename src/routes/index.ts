@@ -11,6 +11,8 @@ const router = express.Router();
 
 // user endpoints -- no errors
 router.route('/user').get(user.login).post(user.register);
+router.post('/user/forget-password', user.forgetPassword);
+router.post('/user/reset-password', tokenVerify, user.resetPassword);
 router.get('/users', authAdmin, user.users);
 
 // user roles endpoint -- no errors
@@ -26,7 +28,7 @@ router
     .put(authAdmin, admin.addAdmin)
     .delete(authAdmin, admin.removeAdmin);
 
-// admin app reports endpoints
+// admin app reports endpoints -- no errors
 router
     .route('/app/reports')
     .get(authAdmin, admin.getAppReports)
@@ -78,14 +80,14 @@ router
 // sold product endpoint -- no errors
 router.route('/store/product').post(tokenVerify, store.soldProduct);
 
-// report product endpoints
+// report product endpoints -- no errors
 router
     .route('/store/reports')
     .get(tokenVerify, store.getReports)
     .post(tokenVerify, store.createReport)
     .delete(tokenVerify, store.deleteReport);
 
-// images endpoints
+// images endpoints -- no errors
 router.route('/images').post(images.upload);
 
 export default router;

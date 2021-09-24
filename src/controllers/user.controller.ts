@@ -1,9 +1,11 @@
 import { Request, Response } from 'express';
 import validator from 'validator';
 
+import { APP_HOST } from '../config/config';
 import AppReport from '../database/models/appReport.model';
 import Role from '../database/models/role.model';
 import User from '../database/models/user.model';
+import { sendMail } from '../services/nodemailer';
 
 const userController: any = {};
 
@@ -122,6 +124,114 @@ userController.register = async (
                 error: 'Username or Email already exists.',
             });
         }
+        return res.status(500).json({
+            error: 'Internal Error',
+        });
+    }
+};
+
+userController.forgetPassword = async (
+    req: Request,
+    res: Response
+): Promise<Response> => {
+    try {
+        const { email } = req.body;
+
+        if (!email) {
+            return res.status(401).json({
+                error: 'Missing fields',
+            });
+        }
+
+        if (!validator.isEmail(email)) {
+            return res.json({
+                error: 'Email must be valid',
+            });
+        }
+
+        const user = await User.findOne({ email });
+
+        if (!user) {
+            return res.status(404).json({
+                error: 'User not found',
+            });
+        }
+
+        const token = user.generateJWT();
+
+        sendMail(
+            user.email,
+            'Password Reset',
+            `
+            <p>You requested a password reset</p>
+            <p>Click this <a href="${APP_HOST}/reset-password/${token}">link</a> to reset your password</p>
+        `
+        );
+
+        await user.save();
+
+        return res.status(200).json({
+            message: 'Reset Password Sent, check your email',
+        });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({
+            error: 'Internal Error',
+        });
+    }
+};
+
+userController.resetPassword = async (
+    req: Request,
+    res: Response
+): Promise<Response> => {
+    try {
+        const { password } = req.body;
+
+        if (!password) {
+            return res.status(401).json({
+                error: 'Missing fields',
+            });
+        }
+
+        if (typeof password !== 'string') {
+            return res.status(401).json({
+                error: 'Password must be a string',
+            });
+        }
+
+        if (password.length < 8) {
+            return res.status(401).json({
+                error: 'Password must be at least 8 characters',
+            });
+        }
+
+        const user = await User.findById((<any>req).user.id);
+
+        if (!user) {
+            return res.status(404).json({
+                error: 'User not found',
+            });
+        }
+
+        user.setPassword(password);
+
+        await user.save();
+
+        sendMail(
+            user.email,
+            'Password Reset',
+            `
+            <p>Your password has been reset</p>
+            <p>You can now login with your new password</p>
+        `
+        );
+
+        return res.status(200).json({
+            message: 'Password reset',
+        });
+    } catch (error) {
+        console.log(error);
         return res.status(500).json({
             error: 'Internal Error',
         });
