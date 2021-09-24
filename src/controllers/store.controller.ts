@@ -34,13 +34,34 @@ storeController.getStores = async (
             });
         }
 
-        const stores = await Store.find({ author: user.id }).populate(
-            'author',
-            '-salt -hash'
-        );
+        const stores = await Store.find({ author: user.id })
+            .populate('author managers employees products', '-salt -hash')
+            .populate({
+                path: 'products',
+                populate: {
+                    path: 'author',
+                    select: '-salt -hash',
+                },
+            });
+
+        const managerStores = await Store.find({
+            managers: user.id,
+        })
+            .populate('author managers employees products', '-salt -hash')
+            .populate({
+                path: 'products',
+                populate: {
+                    path: 'author',
+                    select: '-salt -hash',
+                },
+            });
+
         return res.json({
             message: 'Stores',
-            data: stores,
+            data: {
+                youStores: stores,
+                managerStores,
+            },
         });
     } catch (error) {
         console.log(error);
@@ -241,7 +262,7 @@ storeController.deleteStore = async (
             await Product.findByIdAndDelete(product);
         });
 
-        await Report.deleteMany({ storeId });
+        await Report.deleteMany({ store: storeId });
 
         await store.remove();
 
@@ -1054,7 +1075,7 @@ storeController.deleteProduct = async (
 
         await Product.findByIdAndDelete(productId);
 
-        await Report.deleteMany({ productId });
+        await Report.deleteMany({ product: productId });
 
         return res.json({
             message: 'Product and reports deleted',
@@ -1105,8 +1126,26 @@ storeController.getReports = async (
         }
 
         const reports = await Report.find({
-            storeId,
-        });
+            store: storeId,
+        })
+            .populate({
+                path: 'store',
+                populate: {
+                    path: 'author',
+                    select: '-salt -hash',
+                },
+            })
+            .populate({
+                path: 'product',
+                populate: {
+                    path: 'author',
+                    select: '-salt -hash',
+                },
+            })
+            .populate({
+                path: 'author',
+                select: '-salt -hash',
+            });
 
         return res.json({
             message: 'Reports',
@@ -1166,8 +1205,8 @@ storeController.createReport = async (
         }
 
         const newReport = new Report({
-            storeId,
-            productId,
+            store: storeId,
+            product: productId,
             title,
             description,
             imagePath,
@@ -1217,7 +1256,7 @@ storeController.deleteReport = async (
             });
         }
 
-        const storeExist = await Store.findById(reportExist.storeId);
+        const storeExist = await Store.findById(reportExist.store);
 
         if (!storeExist) {
             return res.status(404).json({
@@ -1225,7 +1264,7 @@ storeController.deleteReport = async (
             });
         }
 
-        const productExist = await Product.findById(reportExist.productId);
+        const productExist = await Product.findById(reportExist.product);
 
         if (!productExist) {
             return res.status(404).json({
@@ -1233,7 +1272,10 @@ storeController.deleteReport = async (
             });
         }
 
-        if (reportExist.author.toString() !== (<any>req).user.id) {
+        if (
+            reportExist.author.toString() !== (<any>req).user.id &&
+            !storeExist.managers.includes((<any>req).user.id)
+        ) {
             return res.status(403).json({
                 error: 'Unauthorized',
             });

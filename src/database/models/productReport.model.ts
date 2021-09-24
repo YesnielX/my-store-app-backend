@@ -2,12 +2,12 @@ import { Document, model, Schema } from 'mongoose';
 
 const reportSchema = new Schema(
     {
-        storeId: {
+        store: {
             type: Schema.Types.ObjectId,
             ref: 'Store',
             required: true,
         },
-        productId: {
+        product: {
             type: Schema.Types.ObjectId,
             ref: 'Product',
             required: true,
@@ -35,13 +35,13 @@ const reportSchema = new Schema(
     }
 );
 
-export interface IReport extends Document {
-    storeId: string;
-    productId: string;
+export interface IProductReport extends Document {
+    store: string;
+    product: string;
     title: string;
     description: string;
     imagePath: string;
     author: string;
 }
 
-export default model<IReport>('productReport', reportSchema);
+export default model<IProductReport>('productReport', reportSchema);
