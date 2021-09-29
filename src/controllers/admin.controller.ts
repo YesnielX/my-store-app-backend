@@ -31,8 +31,8 @@ adminController.adminLogin = async (
     res: Response
 ): Promise<Response> => {
     try {
-        console.log(req.body);
-        const { userOrEmail, password } = req.body;
+        console.log(req.query);
+        const { userOrEmail, password } = req.query;
 
         if (!userOrEmail || !password) {
             return res.status(401).json({
@@ -42,10 +42,10 @@ adminController.adminLogin = async (
 
         let user;
 
-        if (validator.isEmail(userOrEmail)) {
-            user = await User.findOne({ email: userOrEmail });
+        if (validator.isEmail(userOrEmail as string)) {
+            user = await User.findOne({ email: userOrEmail as string });
         } else {
-            user = await User.findOne({ username: userOrEmail });
+            user = await User.findOne({ username: userOrEmail as string });
         }
 
         if (!user) {
@@ -60,7 +60,7 @@ adminController.adminLogin = async (
             });
         }
 
-        if (!user.validatePassword(password)) {
+        if (!user.validatePassword(password as string)) {
             return res.status(401).json({
                 error: 'Password is invalid',
             });

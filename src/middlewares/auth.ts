@@ -5,14 +5,14 @@ import jwt from 'jsonwebtoken';
 import { JWT_SECRET } from '../config/config';
 
 export default (req: Request, res: Response, next: NextFunction) => {
-    const { token } = req.body;
-
+    const { token } = req.headers;
+    console.log(req.headers);
     if (!token) {
         return res.status(401).json({ msg: 'No token, authorization denied' });
     }
 
     try {
-        const decoded = jwt.verify(token, JWT_SECRET);
+        const decoded = jwt.verify(token as string, JWT_SECRET);
         (<any>req).user = decoded;
 
         next();

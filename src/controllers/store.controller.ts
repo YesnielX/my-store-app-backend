@@ -282,7 +282,7 @@ storeController.getManagers = async (
     res: Response
 ): Promise<Response> => {
     try {
-        const { storeId } = <any>req.body;
+        const { storeId } = <any>req.query;
 
         if (!storeId) {
             return res.status(400).json({
@@ -488,7 +488,7 @@ storeController.getEmployees = async (
     res: Response
 ): Promise<Response> => {
     try {
-        const { storeId } = <any>req.body;
+        const { storeId } = <any>req.query;
 
         if (!storeId) {
             return res.status(400).json({
@@ -688,7 +688,7 @@ storeController.getProducts = async (
     res: Response
 ): Promise<Response> => {
     try {
-        const { storeId } = <any>req.body;
+        const { storeId } = <any>req.query;
 
         if (!storeId) {
             return res.status(400).json({
@@ -1094,7 +1094,7 @@ storeController.getReports = async (
     res: Response
 ): Promise<Response> => {
     try {
-        const { storeId } = req.body;
+        const { storeId } = req.query;
 
         if (!storeId) {
             return res.status(400).json({

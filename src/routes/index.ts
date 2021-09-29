@@ -18,7 +18,7 @@ router.get('/users', authAdmin, user.users);
 // user roles endpoint -- no errors
 router
     .route('/user/roles')
-    .get(tokenVerify, user.getRoles)
+    .post(tokenVerify, user.getRoles)
     .put(authAdmin, user.updateRoles);
 
 // admin endpoints -- no errors
