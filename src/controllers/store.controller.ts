@@ -1102,7 +1102,7 @@ storeController.getReports = async (
             });
         }
 
-        if (!validator.isMongoId(storeId)) {
+        if (!validator.isMongoId(storeId as string)) {
             return res.status(400).json({
                 error: 'Invalid fields type',
             });
@@ -1126,7 +1126,7 @@ storeController.getReports = async (
         }
 
         const reports = await Report.find({
-            store: storeId,
+            store: storeId as string,
         })
             .populate({
                 path: 'store',

@@ -10,7 +10,7 @@ import { sendMail } from '../services/nodemailer';
 const userController: any = {};
 
 userController.users = async (
-    req: Request,
+    _req: Request,
     res: Response
 ): Promise<Response> => {
     try {
