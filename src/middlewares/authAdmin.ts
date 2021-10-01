@@ -9,7 +9,7 @@ export default async (req: Request, res: Response, next: NextFunction) => {
     const { token } = req.body;
 
     if (!token) {
-        return res.status(401).json({ msg: 'No token, authorization denied' });
+        return res.status(401).json({ error: 'No token, authorization denied' });
     }
 
     try {
@@ -27,6 +27,6 @@ export default async (req: Request, res: Response, next: NextFunction) => {
 
         next();
     } catch (err) {
-        res.status(401).json({ msg: 'Token is not valid' });
+        res.status(401).json({ error: 'Token is not valid' });
     }
 };
