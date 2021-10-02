@@ -56,11 +56,23 @@ storeController.getStores = async (
                 },
             });
 
+        const employeesStores = await Store.find({
+            employees: user.id,
+        }).populate('author managers employees products', '-salt -hash')
+            .populate({
+                path: 'products',
+                populate: {
+                    path: 'author',
+                    select: '-salt -hash',
+                },
+            });
+
         return res.json({
             message: 'Stores',
             data: {
-                youStores: stores,
+                myStores: stores,
                 managerStores,
+                employeesStores,
             },
         });
     } catch (error) {
