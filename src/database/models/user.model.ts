@@ -8,7 +8,6 @@ import uniqueValidator from 'mongoose-unique-validator';
 
 import { JWT_EXPIRES, JWT_SECRET } from '../../config/config';
 import { IRole } from './role.model';
-
 export interface IUser {
     username: string;
     email: string;
@@ -23,7 +22,7 @@ export interface IUser {
 export interface IUserToAuthJSON {
     username: string;
     email: string;
-    roles: IRole[];
+    roles: string[];
     image: string;
     isPrincipalAdmin: boolean;
     isAdmin: boolean;
@@ -95,6 +94,7 @@ UserSchema.methods.generateJWT = function () {
             id: this._id,
             username: this.username,
             email: this.email,
+            roles: this.roles,
             image: this.image,
             isPrincipalAdmin: this.isPrincipalAdmin,
             isAdmin: this.isAdmin,
@@ -111,6 +111,7 @@ UserSchema.methods.toAuthJSON = function () {
         _id: this._id,
         username: this.username,
         email: this.email,
+        roles: this.roles,
         image: this.image,
         isPrincipalAdmin: this.isPrincipalAdmin,
         isAdmin: this.isAdmin,

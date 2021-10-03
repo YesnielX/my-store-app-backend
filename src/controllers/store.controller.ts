@@ -58,7 +58,8 @@ storeController.getStores = async (
 
         const employeesStores = await Store.find({
             employees: user.id,
-        }).populate('author managers employees products', '-salt -hash')
+        })
+            .populate('author managers employees products', '-salt -hash')
             .populate({
                 path: 'products',
                 populate: {
@@ -66,6 +67,10 @@ storeController.getStores = async (
                     select: '-salt -hash',
                 },
             });
+
+        employeesStores.map((employeeStore) => {
+            stores.push(employeeStore);
+        });
 
         return res.json({
             message: 'Stores',
@@ -329,16 +334,16 @@ storeController.addManager = async (
     try {
         console.log(req.body);
 
-        const { storeId, userId } = req.body;
+        const { storeId, userEmail } = req.body;
 
-        if (!storeId || !userId) {
+        if (!storeId || !userEmail) {
             return res.status(400).json({
                 error: 'Missing required fields',
             });
         }
 
-        if (!validator.isMongoId(storeId) || !validator.isMongoId(userId)) {
-            return res.json({
+        if (!validator.isMongoId(storeId) || !validator.isEmail(userEmail)) {
+            return res.status(404).json({
                 error: 'Invalid fields type',
             });
         }
@@ -357,7 +362,7 @@ storeController.addManager = async (
             });
         }
 
-        const user = await User.findById(userId).populate('roles');
+        const user = await User.findOne({ email: userEmail }).populate('roles');
 
         if (!user) {
             return res.status(404).json({
@@ -371,7 +376,7 @@ storeController.addManager = async (
             });
         }
 
-        if (store.managers.includes(userId)) {
+        if (store.managers.includes(user.id)) {
             return res.status(403).json({
                 error: 'User already manager',
             });
@@ -402,11 +407,11 @@ storeController.addManager = async (
             });
         }
 
-        store.managers.push(userId);
+        store.managers.push(user.id);
 
         await store.save();
 
-        return res.json({
+        return res.status(200).json({
             message: 'Manager Added',
             data: (await store.populate('managers')).managers,
         });
@@ -439,7 +444,7 @@ storeController.deleteManager = async (
         }
 
         if (!validator.isMongoId(storeId) || !validator.isMongoId(userId)) {
-            return res.json({
+            return res.status(404).json({
                 error: 'Invalid fields type',
             });
         }
@@ -483,7 +488,7 @@ storeController.deleteManager = async (
             }
         );
 
-        return res.json({
+        return res.status(200).json({
             message: 'Manager Deleted',
             data: (await store.populate('managers')).managers,
         });
@@ -535,16 +540,16 @@ storeController.addEmployee = async (
     try {
         console.log(req.body);
 
-        const { storeId, userId } = req.body;
+        const { storeId, userEmail } = req.body;
 
-        if (!storeId || !userId) {
+        if (!storeId || !userEmail) {
             return res.status(400).json({
                 error: 'Missing required fields',
             });
         }
 
-        if (!validator.isMongoId(storeId) || !validator.isMongoId(userId)) {
-            return res.json({
+        if (!validator.isMongoId(storeId) || !validator.isEmail(userEmail)) {
+            return res.status(404).json({
                 error: 'Invalid fields type',
             });
         }
@@ -591,7 +596,7 @@ storeController.addEmployee = async (
             });
         }
 
-        const user = await User.findById(userId);
+        const user = await User.findOne({ email: userEmail });
 
         if (!user) {
             return res.status(404).json({
@@ -599,13 +604,13 @@ storeController.addEmployee = async (
             });
         }
 
-        if (store.employees.includes(userId)) {
+        if (store.employees.includes(user.id)) {
             return res.status(403).json({
                 error: 'User already employee',
             });
         }
 
-        store.employees.push(userId);
+        store.employees.push(user.id);
 
         await store.save();
 

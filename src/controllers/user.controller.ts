@@ -14,7 +14,7 @@ userController.users = async (
     res: Response
 ): Promise<Response> => {
     try {
-        const users = await User.find({}).select('-hash -salt');
+        const users = await User.find({}).populate('roles', '-hash -salt');
         return res.status(200).json({
             data: users,
         });
@@ -43,9 +43,15 @@ userController.login = async (
         let user;
 
         if (validator.isEmail(userOrEmail as string)) {
-            user = await User.findOne({ email: userOrEmail as string });
+            user = await User.findOne({ email: userOrEmail as string }).populate(
+                'roles',
+                '-hash -salt'
+            );
         } else {
-            user = await User.findOne({ username: userOrEmail as string });
+            user = await User.findOne({ username: userOrEmail as string }).populate(
+                'roles',
+                '-hash -salt'
+            );
         }
 
         if (!user) {
