@@ -784,7 +784,7 @@ storeController.soldProduct = async (
         }
 
         if (product.stock === 0) {
-            return res.status(200).json({
+            return res.status(409).json({
                 error: 'Product out of stock',
             });
         }
@@ -1077,10 +1077,6 @@ storeController.deleteProduct = async (
             });
         }
 
-        await Store.findByIdAndUpdate(storeExist.id, {
-            $pull: { products: productId },
-        });
-
         if (
             productExist.author.toString() !== (<any>req).user.id &&
             !(storeExist as IStore).managers.includes((<any>req).user.id)
@@ -1089,6 +1085,9 @@ storeController.deleteProduct = async (
                 error: 'Unauthorized',
             });
         }
+        await Store.findByIdAndUpdate(storeExist.id, {
+            $pull: { products: productId },
+        });
 
         await Product.findByIdAndDelete(productId);
 
@@ -1290,7 +1289,7 @@ storeController.deleteReport = async (
         }
 
         if (
-            reportExist.author.toString() !== (<any>req).user.id &&
+            storeExist.author.toString() !== (<any>req).user.id &&
             !storeExist.managers.includes((<any>req).user.id)
         ) {
             return res.status(403).json({
