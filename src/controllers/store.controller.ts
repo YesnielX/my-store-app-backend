@@ -44,7 +44,7 @@ storeController.getStores = async (
                 },
             });
 
-        const managerStores = await Store.find({
+        var managerStores = await Store.find({
             managers: user.id,
         })
             .populate('author managers employees products', '-salt -hash')
@@ -56,7 +56,7 @@ storeController.getStores = async (
                 },
             });
 
-        const employeesStores = await Store.find({
+        var employeesStores = await Store.find({
             employees: user.id,
         })
             .populate('author managers employees products', '-salt -hash')
@@ -68,6 +68,9 @@ storeController.getStores = async (
                 },
             });
 
+        employeesStores = employeesStores.reverse();
+        managerStores = managerStores.reverse();
+
         employeesStores.map((employeeStore) => {
             stores.push(employeeStore);
         });
@@ -75,7 +78,7 @@ storeController.getStores = async (
         return res.json({
             message: 'Stores',
             data: {
-                myStores: stores,
+                myStores: stores.reverse(),
                 managerStores,
                 employeesStores,
             },
@@ -784,7 +787,7 @@ storeController.soldProduct = async (
         }
 
         if (product.stock === 0) {
-            return res.status(409).json({
+            return res.status(403).json({
                 error: 'Product out of stock',
             });
         }
