@@ -11,6 +11,7 @@ const router = express.Router();
 
 // user endpoints -- no errors
 router.route('/user').get(user.login).post(user.register);
+router.get('/me', tokenVerify, user.me);
 router.post('/user/forget-password', user.forgetPassword);
 router.post('/user/reset-password', tokenVerify, user.resetPassword);
 router.get('/users', authAdmin, user.users);

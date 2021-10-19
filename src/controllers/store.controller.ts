@@ -30,7 +30,9 @@ storeController.getStores = async (
 
             return res.json({
                 message: 'Stores, you are a admin',
-                data: stores,
+                data: {
+                    myStores: stores.reverse(),
+                },
             });
         }
 

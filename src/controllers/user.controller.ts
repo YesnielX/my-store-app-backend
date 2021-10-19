@@ -26,6 +26,26 @@ userController.users = async (
     }
 };
 
+userController.me = async (
+    req: Request,
+    res: Response
+): Promise<Response> => {
+    try {
+        const user = await User.findById((<any>req).user.id).populate(
+            'roles',
+            '-hash -salt'
+        );
+        return res.status(200).json({
+            data: user.toAuthJSON(),
+        });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({
+            error: 'Internal Error',
+        });
+    }
+};
+
 userController.login = async (
     req: Request,
     res: Response
@@ -43,15 +63,13 @@ userController.login = async (
         let user;
 
         if (validator.isEmail(userOrEmail as string)) {
-            user = await User.findOne({ email: userOrEmail as string }).populate(
-                'roles',
-                '-hash -salt'
-            );
+            user = await User.findOne({
+                email: userOrEmail as string,
+            }).populate('roles', '-hash -salt');
         } else {
-            user = await User.findOne({ username: userOrEmail as string }).populate(
-                'roles',
-                '-hash -salt'
-            );
+            user = await User.findOne({
+                username: userOrEmail as string,
+            }).populate('roles', '-hash -salt');
         }
 
         if (!user) {

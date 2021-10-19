@@ -6,14 +6,14 @@ import { JWT_SECRET } from '../config/config';
 import User from '../database/models/user.model';
 
 export default async (req: Request, res: Response, next: NextFunction) => {
-    const { token } = req.body;
+    const { token } = req.headers;
 
     if (!token) {
         return res.status(401).json({ error: 'No token, authorization denied' });
     }
 
     try {
-        const decoded = jwt.verify(token, JWT_SECRET);
+        const decoded = jwt.verify(token as string, JWT_SECRET);
         (<any>req).user = decoded;
 
         if (
