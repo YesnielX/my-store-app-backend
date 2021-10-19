@@ -36,7 +36,7 @@ userController.me = async (
             '-hash -salt'
         );
         return res.status(200).json({
-            data: user.toAuthJSON(),
+            data: user ? user.toAuthJSON() : [],
         });
     } catch (error) {
         console.log(error);
