@@ -29,6 +29,8 @@ router
     .put(authAdmin, admin.addAdmin)
     .delete(authAdmin, admin.removeAdmin);
 
+router.get('/admin/stores', authAdmin, store.getStoresAsAdmin);
+
 // admin app reports endpoints -- no errors
 router
     .route('/app/reports')

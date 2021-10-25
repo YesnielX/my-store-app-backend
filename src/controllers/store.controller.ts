@@ -8,33 +8,41 @@ import User from '../database/models/user.model';
 
 const storeController: any = {};
 
+storeController.getStoresAsAdmin = async (
+    req: Request,
+    res: Response
+): Promise<Response> => {
+    try {
+        const stores = await Store.find({})
+            .populate('author managers employees products', '-salt -hash')
+            .populate({
+                path: 'products',
+                populate: {
+                    path: 'author',
+                    select: '-salt -hash',
+                },
+            });
+
+        return res.json({
+            message: 'Stores, you are a admin',
+            data: {
+                myStores: stores.reverse(),
+            },
+        });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({
+            error: 'Internal Error',
+        });
+    }
+};
+
 storeController.getStores = async (
     req: Request,
     res: Response
 ): Promise<Response> => {
     try {
         const { user } = <any>req;
-
-        const checkAdmin = await User.findById(user.id);
-
-        if (checkAdmin?.isAdmin || checkAdmin?.isPrincipalAdmin) {
-            const stores = await Store.find({})
-                .populate('author managers employees products', '-salt -hash')
-                .populate({
-                    path: 'products',
-                    populate: {
-                        path: 'author',
-                        select: '-salt -hash',
-                    },
-                });
-
-            return res.json({
-                message: 'Stores, you are a admin',
-                data: {
-                    myStores: stores.reverse(),
-                },
-            });
-        }
 
         const stores = await Store.find({ author: user.id })
             .populate('author managers employees products', '-salt -hash')
@@ -361,12 +369,6 @@ storeController.addManager = async (
             });
         }
 
-        if ((store as IStore).author.toString() !== (<any>req).user.id) {
-            return res.status(403).json({
-                error: 'Unauthorized, only store owner',
-            });
-        }
-
         const user = await User.findOne({ email: userEmail }).populate('roles');
 
         if (!user) {
@@ -375,9 +377,19 @@ storeController.addManager = async (
             });
         }
 
-        if (store.managers.includes((<any>req).user.id)) {
+        if (store.employees.includes(user._id)) {
             return res.status(403).json({
-                error: 'StoreOwner Only add managers',
+                error: 'User already in store as employee',
+            });
+        }
+
+        if (
+            store.author.toString() !== (<any>req).user.id &&
+            !(await User.findById((<any>req).user.id))?.isPrincipalAdmin &&
+            !(await User.findById((<any>req).user.id))?.isAdmin
+        ) {
+            return res.status(403).json({
+                error: 'StoreOwner and admins Only add managers',
             });
         }
 
@@ -462,7 +474,11 @@ storeController.deleteManager = async (
             });
         }
 
-        if ((store as IStore).author.toString() !== (<any>req).user.id) {
+        if (
+            (store as IStore).author.toString() !== (<any>req).user.id &&
+            !(await User.findById((<any>req).user.id))?.isPrincipalAdmin &&
+            !(await User.findById((<any>req).user.id))?.isAdmin
+        ) {
             return res.status(403).json({
                 error: 'Unauthorized',
             });
@@ -567,9 +583,25 @@ storeController.addEmployee = async (
             });
         }
 
+        const user = await User.findOne({ email: userEmail });
+
+        if (!user) {
+            return res.status(404).json({
+                error: 'User not found',
+            });
+        }
+
+        if (store.managers.includes(user._id)) {
+            return res.status(403).json({
+                error: 'User already in store as manager',
+            });
+        }
+
         if (
             !store.author.toString() === (<any>req).user.id &&
-            !store.managers.includes((<any>req).user.id)
+            !store.managers.includes((<any>req).user.id) &&
+            !(await User.findById((<any>req).user.id))?.isPrincipalAdmin &&
+            !(await User.findById((<any>req).user.id))?.isAdmin
         ) {
             return res.status(403).json({
                 error: 'Unauthorized, you no are a store author, manager or admin',
@@ -598,14 +630,6 @@ storeController.addEmployee = async (
         ) {
             return res.status(403).json({
                 error: 'maxEmployees reached!',
-            });
-        }
-
-        const user = await User.findOne({ email: userEmail });
-
-        if (!user) {
-            return res.status(404).json({
-                error: 'User not found',
             });
         }
 
@@ -666,7 +690,9 @@ storeController.deleteEmployee = async (
 
         if (
             (store as IStore).author.toString() !== (<any>req).user.id &&
-            !store.managers.includes((<any>req).user.id)
+            !store.managers.includes((<any>req).user.id) &&
+            !(await User.findById((<any>req).user.id))?.isPrincipalAdmin &&
+            !(await User.findById((<any>req).user.id))?.isAdmin
         ) {
             return res.status(403).json({
                 error: 'Unauthorized, you no are a store author, manager or admin',
@@ -773,7 +799,9 @@ storeController.soldProduct = async (
         if (
             store.author.toString() !== (<any>req).user.id &&
             !store.managers.includes((<any>req).user.id) &&
-            !store.employees.includes((<any>req).user.id)
+            !store.employees.includes((<any>req).user.id) &&
+            !(await User.findById((<any>req).user.id))?.isPrincipalAdmin &&
+            !(await User.findById((<any>req).user.id))?.isAdmin
         ) {
             return res.status(403).json({
                 error: 'Unauthorized, You are not the author or employee of this store',
@@ -879,7 +907,9 @@ storeController.createProduct = async (
 
         if (
             (storeExist as IStore).author.toString() !== (<any>req).user.id &&
-            !(storeExist as IStore).managers.includes((<any>req).user.id)
+            !(storeExist as IStore).managers.includes((<any>req).user.id) &&
+            !(await User.findById((<any>req).user.id))?.isPrincipalAdmin &&
+            !(await User.findById((<any>req).user.id))?.isAdmin
         ) {
             return res.status(403).json({
                 error: 'Unauthorized',
@@ -1013,7 +1043,9 @@ storeController.updateProduct = async (
 
         if (
             productExist.author.toString() !== (<any>req).user.id &&
-            !(storeExist as IStore).managers.includes((<any>req).user.id)
+            !(storeExist as IStore).managers.includes((<any>req).user.id) &&
+            !(await User.findById((<any>req).user.id))?.isPrincipalAdmin &&
+            !(await User.findById((<any>req).user.id))?.isAdmin
         ) {
             return res.status(403).json({
                 error: 'Unauthorized',
@@ -1084,7 +1116,9 @@ storeController.deleteProduct = async (
 
         if (
             productExist.author.toString() !== (<any>req).user.id &&
-            !(storeExist as IStore).managers.includes((<any>req).user.id)
+            !(storeExist as IStore).managers.includes((<any>req).user.id) &&
+            !(await User.findById((<any>req).user.id))?.isPrincipalAdmin &&
+            !(await User.findById((<any>req).user.id))?.isAdmin
         ) {
             return res.status(403).json({
                 error: 'Unauthorized',
@@ -1139,7 +1173,9 @@ storeController.getReports = async (
 
         if (
             storeExist.author.toString() !== (<any>req).user.id &&
-            !(storeExist as IStore).managers.includes((<any>req).user.id)
+            !(storeExist as IStore).managers.includes((<any>req).user.id) &&
+            !(await User.findById((<any>req).user.id))?.isPrincipalAdmin &&
+            !(await User.findById((<any>req).user.id))?.isAdmin
         ) {
             return res.status(403).json({
                 error: 'Unauthorized',
@@ -1218,7 +1254,9 @@ storeController.createReport = async (
         if (
             storeExist.author.toString() !== (<any>req).user.id &&
             !(storeExist as IStore).managers.includes((<any>req).user.id) &&
-            !(storeExist as IStore).employees.includes((<any>req).user.id)
+            !(storeExist as IStore).employees.includes((<any>req).user.id) &&
+            !(await User.findById((<any>req).user.id))?.isPrincipalAdmin &&
+            !(await User.findById((<any>req).user.id))?.isAdmin
         ) {
             return res.status(403).json({
                 error: 'Unauthorized',
@@ -1295,7 +1333,9 @@ storeController.deleteReport = async (
 
         if (
             storeExist.author.toString() !== (<any>req).user.id &&
-            !storeExist.managers.includes((<any>req).user.id)
+            !storeExist.managers.includes((<any>req).user.id) &&
+            !(await User.findById((<any>req).user.id))?.isPrincipalAdmin &&
+            !(await User.findById((<any>req).user.id))?.isAdmin
         ) {
             return res.status(403).json({
                 error: 'Unauthorized',
