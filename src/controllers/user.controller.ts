@@ -189,7 +189,7 @@ userController.forgetPassword = async (
             'Password Reset',
             `
             <p>You requested a password reset</p>
-            <p>Click this <a href="${APP_HOST}/reset-password/${token}">link</a> to reset your password</p>
+            <p>Click this <a href="${APP_HOST}/ResetPassword/${token}">link</a> to reset your password</p>
         `
         );
 
