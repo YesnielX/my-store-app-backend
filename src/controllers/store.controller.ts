@@ -9,7 +9,7 @@ import User from '../database/models/user.model';
 const storeController: any = {};
 
 storeController.getStoresAsAdmin = async (
-    req: Request,
+    _req: Request,
     res: Response
 ): Promise<Response> => {
     try {
