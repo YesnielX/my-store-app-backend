@@ -9,6 +9,11 @@ import authAdmin from '../middlewares/authAdmin';
 
 const router = express.Router();
 
+// hello world endpoint
+router.get('/ping', (_req, res) => {
+    res.send('pong');
+});
+
 // user endpoints -- no errors
 router.route('/user').get(user.login).post(user.register);
 router.get('/me', tokenVerify, user.me);

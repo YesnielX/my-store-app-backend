@@ -14,8 +14,9 @@ userController.users = async (
     res: Response
 ): Promise<Response> => {
     try {
-        const users = await User.find({}).populate('roles').select(
-            '-hash -salt');
+        const users = await User.find({})
+            .populate('roles')
+            .select('-hash -salt');
         return res.status(200).json({
             data: users,
         });
@@ -27,10 +28,7 @@ userController.users = async (
     }
 };
 
-userController.me = async (
-    req: Request,
-    res: Response
-): Promise<Response> => {
+userController.me = async (req: Request, res: Response): Promise<Response> => {
     try {
         const user = await User.findById((<any>req).user.id).populate(
             'roles',

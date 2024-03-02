@@ -9,13 +9,13 @@ const imagesController: any = {};
 imagesController.upload = async (req: Request, res: Response) => {
     try {
         const form: any = new Formidable.IncomingForm({
-            maxFileSize: 20 * 1024 * 1024
-        })
+            maxFileSize: 20 * 1024 * 1024,
+        });
         form.parse(req, async (_err: any, _fields: Fields, files: Files) => {
             if (!files) {
                 return res.status(400).json({
-                    error: 'no files sended'
-                })
+                    error: 'no files sended',
+                });
             }
 
             return res.status(201).json({

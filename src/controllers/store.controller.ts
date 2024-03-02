@@ -54,7 +54,7 @@ storeController.getStores = async (
                 },
             });
 
-        var managerStores = await Store.find({
+        let managerStores = await Store.find({
             managers: user.id,
         })
             .populate('author managers employees products', '-salt -hash')
@@ -66,7 +66,7 @@ storeController.getStores = async (
                 },
             });
 
-        var employeesStores = await Store.find({
+        let employeesStores = await Store.find({
             employees: user.id,
         })
             .populate('author managers employees products', '-salt -hash')

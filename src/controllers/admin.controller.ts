@@ -373,9 +373,10 @@ adminController.getAppReports = async (
     res: Response
 ): Promise<Response> => {
     try {
-        const reports = await appReportModel.find().populate(
-            'author'
-        ).select('-salt -hash')
+        const reports = await appReportModel
+            .find()
+            .populate('author')
+            .select('-salt -hash');
 
         return res.status(200).json({
             message: 'Reports retrieved successfully',
